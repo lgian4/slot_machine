@@ -1,9 +1,7 @@
 use colored::Colorize;
-use core::num;
 use rand::{rngs::ThreadRng, Rng};
 use std::{
     io::{self, Write},
-    rc::Rc,
     thread,
     time::Duration,
 };
@@ -98,25 +96,13 @@ impl SlotMachine {
         }
 
         for _ in 0..reel_1_spin_number {
-            self.reels[0].advance();
-            self.reels[1].advance();
-            self.reels[2].advance();
-            self.update_reel_ui(3);
-            io::stdout().flush().unwrap();
-            thread::sleep(Duration::from_millis(50));
+            self.advance_reels(50, 0, 2);
         }
         for _ in 0..reel_2_spin_number {
-            self.reels[1].advance();
-            self.reels[2].advance();
-            self.update_reel_ui(2);
-            io::stdout().flush().unwrap();
-            thread::sleep(Duration::from_millis(100));
+            self.advance_reels(100, 1, 2);
         }
         for _ in 0..reel_3_spin_number {
-            self.reels[2].advance();
-            self.update_reel_ui(1);
-            io::stdout().flush().unwrap();
-            thread::sleep(Duration::from_millis(150));
+            self.advance_reels(150, 2, 2);
         }
         self.print_ui();
         if self.result() {
@@ -126,6 +112,16 @@ impl SlotMachine {
         } else {
             self.update_reel_ui(4);
         }
+    }
+
+    fn advance_reels(&mut self, sleep_duration: u64, start_reel: usize, end_reel: usize) {
+        for i in start_reel..=end_reel {
+            self.reels[i].advance();
+        }
+
+        self.update_reel_ui(end_reel as i32 - start_reel as i32 + 1);
+        io::stdout().flush().unwrap();
+        thread::sleep(Duration::from_millis(sleep_duration));
     }
     fn numbers(&self) -> (i32, i32, i32) {
         (

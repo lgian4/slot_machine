@@ -7,22 +7,31 @@ use std::{
     thread,
     time::Duration,
 };
-
+static AMOUNT_PER_SPIN: u64 = 1;
+static AMOUNT_PER_WIN: u64 = 1000;
 fn main() {
     let mut slot = SlotMachine::new(500);
     slot.print_ui();
-    println!("Spin slot: (y/n) !");
+    println!(
+        "Spin slot ${} to win ${} : (y/n) !",
+        AMOUNT_PER_SPIN.to_string().red(),
+        AMOUNT_PER_WIN.to_string().green()
+    );
     loop {
         let mut input = String::new();
         io::stdin().read_line(&mut input).unwrap();
         if input.trim() != "y" {
             println!("Thanks for playing!");
-            // Exit the game loop
+
             std::process::exit(0);
         }
 
         slot.spin();
-        println!("Spin slot again: (y/n) !");
+        println!(
+            "Spin slot ${} again to win ${} : (y/n) !",
+            AMOUNT_PER_SPIN.to_string().red(),
+            AMOUNT_PER_WIN.to_string().green()
+        );
     }
 }
 
@@ -67,11 +76,11 @@ impl SlotMachine {
     }
 
     fn spin(&mut self) {
-        self.balance -= 1;
+        self.balance -= AMOUNT_PER_SPIN;
         self.print_ui();
         self.update_reel_ui(3);
         let win = self.rng.gen::<f64>() <= 0.2;
-        let reel_1_spin_number = self.rng.gen_range(10..=45);
+        let reel_1_spin_number = self.rng.gen_range(10..=55);
         let mut reel_2_spin_number = self.rng.gen_range(10..=55);
         let mut reel_3_spin_number = self.rng.gen_range(5..=55);
         if win {
@@ -94,26 +103,26 @@ impl SlotMachine {
             self.reels[2].advance();
             self.update_reel_ui(3);
             io::stdout().flush().unwrap();
-            thread::sleep(Duration::from_millis(100));
+            thread::sleep(Duration::from_millis(50));
         }
         for _ in 0..reel_2_spin_number {
             self.reels[1].advance();
             self.reels[2].advance();
             self.update_reel_ui(2);
             io::stdout().flush().unwrap();
-            thread::sleep(Duration::from_millis(150));
+            thread::sleep(Duration::from_millis(100));
         }
         for _ in 0..reel_3_spin_number {
             self.reels[2].advance();
             self.update_reel_ui(1);
             io::stdout().flush().unwrap();
-            thread::sleep(Duration::from_millis(200));
+            thread::sleep(Duration::from_millis(150));
         }
         self.print_ui();
         if self.result() {
-            self.balance += 1000;
+            self.balance += AMOUNT_PER_WIN;
             self.update_reel_ui(5);
-            println!("you win {}", "$1000".green())
+            println!("you win ${}", AMOUNT_PER_WIN.to_string().green())
         } else {
             self.update_reel_ui(4);
         }
